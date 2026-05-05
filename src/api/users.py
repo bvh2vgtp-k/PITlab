@@ -47,7 +47,7 @@ def login(login_data: UserLogin, session: Session = Depends(get_session)):
         select(User).where(User.email == login_data.email)
     ).first()
 
-    if not user or not user.verify_passwd(login_data.passwd):
+    if not user or not user.verify_passwd(login_data.password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     return {"message": "Login successful", "user_id": user.id}
