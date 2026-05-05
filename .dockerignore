@@ -1,6 +1,11 @@
-*.db
-__pycache__
+.git
+.gitignore
+
+**/*.db
+**/__pycache__/
 *.pyc
 .git
-.env
-.venv
+.env/
+env/
+.venv/
+venv/
