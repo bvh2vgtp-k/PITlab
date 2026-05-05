@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  web-app:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./src:/app/src
+    environment:
+      - DEBUG=1
+
