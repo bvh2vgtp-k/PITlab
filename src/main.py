@@ -1,5 +1,6 @@
 from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 from contextlib import asynccontextmanager
 import uvicorn
 
@@ -23,10 +24,15 @@ app = FastAPI(
 )
 
 app.include_router(main_router)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"]
+)
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 async def root():
-    return RedirectResponse(url="/register", status_code=302)
+    with open("index.html", "r", encoding="utf8") as f:
+        return f.read()
 
 
 #в идеале ещё сделать ответ на рут но мне западло 
@@ -36,6 +42,6 @@ if __name__ == "__main__":
     uvicorn.run(
         "main:app",  # формат: "имя_файла:переменная_app"
         host="0.0.0.0",  # хост (для докера обязательно надо breadcast)
-        port=8000,         # порт (по умолчанию 8000)
+        port=8080,         # порт (по умолчанию 8000)
         reload=True,       # хз
     )

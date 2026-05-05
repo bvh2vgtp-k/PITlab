@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Музейный API клиент</title>
+</head>
+<body>
+    <h1>Музейный портал</h1>
+
+    <!-- ==================== ПОЛЬЗОВАТЕЛИ ==================== -->
+    <h2>Пользователи</h2>
+    
+    <h3>Регистрация</h3>
+    <form id="registerForm">
+        <input type="email" id="regEmail" placeholder="Email" required>
+        <input type="text" id="regFirstName" placeholder="Имя" required>
+        <input type="text" id="regLastName" placeholder="Фамилия" required>
+        <input type="number" id="regAge" placeholder="Возраст" required>
+        <input type="password" id="regPassword" placeholder="Пароль" required>
+        <button type="submit">Зарегистрироваться</button>
+    </form>
+
+    <h3>Вход</h3>
+    <form id="loginForm">
+        <input type="email" id="loginEmail" placeholder="Email" required>
+        <input type="password" id="loginPassword" placeholder="Пароль" required>
+        <button type="submit">Войти</button>
+    </form>
+
+    <h3>Список пользователей</h3>
+    <button id="getUsersBtn">Получить всех пользователей</button>
+    <div id="usersList"></div>
+
+    <h3>Работа с конкретным пользователем</h3>
+    <input type="number" id="userId" placeholder="ID пользователя">
+    <button id="getUserBtn">Получить пользователя</button>
+    <button id="deleteUserBtn">Удалить пользователя</button>
+    
+    <h4>Изменить данные пользователя</h4>
+    <form id="patchUserForm">
+        <input type="number" id="patchUserId" placeholder="ID пользователя" required>
+        <input type="email" id="patchEmail" placeholder="Новый Email">
+        <input type="text" id="patchFirstName" placeholder="Новое имя">
+        <input type="text" id="patchLastName" placeholder="Новая фамилия">
+        <input type="number" id="patchAge" placeholder="Новый возраст">
+        <input type="password" id="patchPassword" placeholder="Новый пароль">
+        <button type="submit">Обновить пользователя</button>
+    </form>
+
+    <hr>
+
+    <!-- ==================== ЭКСПОНАТЫ ==================== -->
+    <h2>Экспонаты</h2>
+
+    <h3>Создать экспонат</h3>
+    <form id="createExhibitForm">
+        <input type="text" id="exhibitTitle" placeholder="Название" required>
+        <input type="text" id="exhibitDescription" placeholder="Описание" required>
+        <button type="submit">Создать экспонат</button>
+    </form>
+
+    <h3>Список экспонатов</h3>
+    <button id="getExhibitsBtn">Получить все экспонаты</button>
+    <div id="exhibitsList"></div>
+
+    <h3>Работа с конкретным экспонатом</h3>
+    <input type="number" id="exhibitId" placeholder="ID экспоната">
+    <button id="getExhibitBtn">Получить экспонат</button>
+    <button id="deleteExhibitBtn">Удалить экспонат</button>
+
+    <h4>Изменить экспонат</h4>
+    <form id="patchExhibitForm">
+        <input type="number" id="patchExhibitId" placeholder="ID экспоната" required>
+        <input type="text" id="patchExhibitTitle" placeholder="Новое название">
+        <input type="text" id="patchExhibitDescription" placeholder="Новое описание">
+        <button type="submit">Обновить экспонат</button>
+    </form>
+
+    <hr>
+
+    <!-- ==================== ЭКСПОЗИЦИИ ==================== -->
+    <h2>Экспозиции</h2>
+
+    <h3>Создать экспозицию</h3>
+    <form id="createExpositionForm">
+        <input type="text" id="expositionTitle" placeholder="Название" required>
+        <input type="text" id="expositionDescription" placeholder="Описание" required>
+        <button type="submit">Создать экспозицию</button>
+    </form>
+
+    <h3>Список экспозиций</h3>
+    <button id="getExpositionsBtn">Получить все экспозиции</button>
+    <div id="expositionsList"></div>
+
+    <h3>Работа с конкретной экспозицией</h3>
+    <input type="number" id="expositionId" placeholder="ID экспозиции">
+    <button id="getExpositionBtn">Получить экспозицию</button>
+    <button id="deleteExpositionBtn">Удалить экспозицию</button>
+
+    <h4>Изменить экспозицию</h4>
+    <form id="patchExpositionForm">
+        <input type="number" id="patchExpositionId" placeholder="ID экспозиции" required>
+        <input type="text" id="patchExpositionTitle" placeholder="Новое название">
+        <input type="text" id="patchExpositionDescription" placeholder="Новое описание">
+        <button type="submit">Обновить экспозицию</button>
+    </form>
+
+    <hr>
+
+    <h3>Root эндпоинт</h3>
+    <button id="getRootBtn">GET /</button>
+    <div id="rootResponse"></div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080';
+
+        async function apiRequest(endpoint, method, body = null) {
+            const options = {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                mode: 'cors',
+                credentials: 'omit',
+            };
+            
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+            
+            try {
+                console.log(`Отправка ${method} запроса на ${API_BASE}${endpoint}`);
+                const response = await fetch(`${API_BASE}${endpoint}`, options);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                
+                if (method === 'DELETE' || response.status === 204) {
+                    return { success: true, status: response.status };
+                }
+                
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Ошибка запроса:', error);
+                
+                if (error.message === 'Failed to fetch' || error.name === 'TypeError') {
+                    alert('❌ Ошибка: Не удалось соединиться с сервером. Убедитесь, что бекенд запущен на ' + API_BASE);
+                } else {
+                    alert(`Ошибка: ${error.message}`);
+                }
+                throw error;
+            }
+        }
+
+        function displayData(containerId, data, title = 'Результат') {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = `<strong>${title}:</strong><pre style="background:#f0f0f0;padding:10px;overflow-x:auto;margin-top:5px;">${JSON.stringify(data, null, 2)}</pre>`;
+        }
+
+        function clearContainer(containerId) {
+            const container = document.getElementById(containerId);
+            if (container) container.innerHTML = '';
+        }
+
+        // ========== ПОЛЬЗОВАТЕЛИ ==========
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const userData = {
+                email: document.getElementById('regEmail').value,
+                password: document.getElementById('regPassword').value,
+                first_name: document.getElementById('regFirstName').value,
+                last_name: document.getElementById('regLastName').value,
+                age: parseInt(document.getElementById('regAge').value),
+            };
+            try {
+                const result = await apiRequest('/api/v1/register', 'POST', userData);
+                alert('✅ Регистрация успешна!');
+                displayData('usersList', result, 'Зарегистрированный пользователь');
+                e.target.reset();
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const loginData = {
+                email: document.getElementById('loginEmail').value,
+                password: document.getElementById('loginPassword').value,
+            };
+            try {
+                const result = await apiRequest('/api/v1/login', 'POST', loginData);
+                alert('✅ Вход выполнен');
+                displayData('usersList', result, 'Данные входа');
+                e.target.reset();
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        document.getElementById('getUsersBtn').addEventListener('click', async () => {
+            try {
+                const users = await apiRequest('/api/v1/users', 'GET');
+                displayData('usersList', users, 'Список пользователей');
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        document.getElementById('getUserBtn').addEventListener('click', async () => {
+            const userId = document.getElementById('userId').value;
+            if (!userId) {
+                alert('Введите ID пользователя');
+                return;
+            }
+            try {
+                const user = await apiRequest(`/api/v1/users/${userId}`, 'GET');
+                displayData('usersList', user, `Пользователь ID ${userId}`);
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        document.getElementById('deleteUserBtn').addEventListener('click', async () => {
+            const userId = document.getElementById('userId').value;
+            if (!userId) {
+                alert('Введите ID пользователя для удаления');
+                return;
+            }
+            if (confirm(`Удалить пользователя ID ${userId}?`)) {
+                try {
+                    await apiRequest(`/api/v1/users/${userId}`, 'DELETE');
+                    alert('✅ Пользователь удален');
+                    clearContainer('usersList');
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+        });
+
+        document.getElementById('patchUserForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const userId = document.getElementById('patchUserId').value;
+            if (!userId) {
+                alert('Введите ID пользователя');
+                return;
+            }
+            const patchData = {};
+            const email = document.getElementById('patchEmail').value;
+            const firstName = document.getElementById('patchFirstName').value;
+            const lastName = document.getElementById('patchLastName').value;
+            const age = document.getElementById('patchAge').value;
+            const password = document.getElementById('patchPassword').value;
+            
+            if (email) patchData.email = email;
+            if (firstName) patchData.first_name = firstName;
+            if (lastName) patchData.last_name = lastName;
+            if (age) patchData.age = parseInt(age);
+            if (password) patchData.password = password;
+            
+            if (Object.keys(patchData).length === 0) {
+                alert('Заполните хотя бы одно поле для обновления');
+                return;
+            }
+            try {
+                const result = await apiRequest(`/api/v1/users/${userId}`, 'PATCH', patchData);
+                alert('✅ Пользователь обновлен');
+                displayData('usersList', result, `Обновленный пользователь ID ${userId}`);
+                e.target.reset();
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        // ========== ЭКСПОНАТЫ ==========
+        document.getElementById('createExhibitForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const exhibitData = {
+                title: document.getElementById('exhibitTitle').value,
+                description: document.getElementById('exhibitDescription').value,
+            };
+            try {
+                const result = await apiRequest('/api/v1/exhibits/', 'POST', exhibitData);
+                alert('✅ Экспонат создан');
+                displayData('exhibitsList', result, 'Созданный экспонат');
+                e.target.reset();
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        document.getElementById('getExhibitsBtn').addEventListener('click', async () => {
+            try {
+                const exhibits = await apiRequest('/api/v1/exhibits/', 'GET');
+                displayData('exhibitsList', exhibits, 'Список экспонатов');
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        document.getElementById('getExhibitBtn').addEventListener('click', async () => {
+            const exhibitId = document.getElementById('exhibitId').value;
+            if (!exhibitId) {
+                alert('Введите ID экспоната');
+                return;
+            }
+            try {
+                const exhibit = await apiRequest(`/api/v1/exhibits/${exhibitId}`, 'GET');
+                displayData('exhibitsList', exhibit, `Экспонат ID ${exhibitId}`);
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        document.getElementById('deleteExhibitBtn').addEventListener('click', async () => {
+            const exhibitId = document.getElementById('exhibitId').value;
+            if (!exhibitId) {
+                alert('Введите ID экспоната для удаления');
+                return;
+            }
+            if (confirm(`Удалить экспонат ID ${exhibitId}?`)) {
+                try {
+                    await apiRequest(`/api/v1/exhibits/${exhibitId}`, 'DELETE');
+                    alert('✅ Экспонат удален');
+                    clearContainer('exhibitsList');
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+        });
+
+        document.getElementById('patchExhibitForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const exhibitId = document.getElementById('patchExhibitId').value;
+            if (!exhibitId) {
+                alert('Введите ID экспоната');
+                return;
+            }
+            const patchData = {};
+            const title = document.getElementById('patchExhibitTitle').value;
+            const description = document.getElementById('patchExhibitDescription').value;
+            if (title) patchData.title = title;
+            if (description) patchData.description = description;
+            
+            if (Object.keys(patchData).length === 0) {
+                alert('Заполните хотя бы одно поле для обновления');
+                return;
+            }
+            try {
+                const result = await apiRequest(`/api/v1/exhibits/${exhibitId}`, 'PATCH', patchData);
+                alert('✅ Экспонат обновлен');
+                displayData('exhibitsList', result, `Обновленный экспонат ID ${exhibitId}`);
+                e.target.reset();
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        // ========== ЭКСПОЗИЦИИ ==========
+        document.getElementById('createExpositionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const expositionData = {
+                title: document.getElementById('expositionTitle').value,
+                description: document.getElementById('expositionDescription').value,
+            };
+            try {
+                const result = await apiRequest('/api/v1/expositions/', 'POST', expositionData);
+                alert('✅ Экспозиция создана');
+                displayData('expositionsList', result, 'Созданная экспозиция');
+                e.target.reset();
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        document.getElementById('getExpositionsBtn').addEventListener('click', async () => {
+            try {
+                const expositions = await apiRequest('/api/v1/expositions/', 'GET');
+                displayData('expositionsList', expositions, 'Список экспозиций');
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        document.getElementById('getExpositionBtn').addEventListener('click', async () => {
+            const expositionId = document.getElementById('expositionId').value;
+            if (!expositionId) {
+                alert('Введите ID экспозиции');
+                return;
+            }
+            try {
+                const exposition = await apiRequest(`/api/v1/expositions/${expositionId}`, 'GET');
+                displayData('expositionsList', exposition, `Экспозиция ID ${expositionId}`);
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        document.getElementById('deleteExpositionBtn').addEventListener('click', async () => {
+            const expositionId = document.getElementById('expositionId').value;
+            if (!expositionId) {
+                alert('Введите ID экспозиции для удаления');
+                return;
+            }
+            if (confirm(`Удалить экспозицию ID ${expositionId}?`)) {
+                try {
+                    await apiRequest(`/api/v1/expositions/${expositionId}`, 'DELETE');
+                    alert('✅ Экспозиция удалена');
+                    clearContainer('expositionsList');
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+        });
+
+        document.getElementById('patchExpositionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const expositionId = document.getElementById('patchExpositionId').value;
+            if (!expositionId) {
+                alert('Введите ID экспозиции');
+                return;
+            }
+            const patchData = {};
+            const title = document.getElementById('patchExpositionTitle').value;
+            const description = document.getElementById('patchExpositionDescription').value;
+            if (title) patchData.title = title;
+            if (description) patchData.description = description;
+            
+            if (Object.keys(patchData).length === 0) {
+                alert('Заполните хотя бы одно поле для обновления');
+                return;
+            }
+            try {
+                const result = await apiRequest(`/api/v1/expositions/${expositionId}`, 'PATCH', patchData);
+                alert('✅ Экспозиция обновлена');
+                displayData('expositionsList', result, `Обновленная экспозиция ID ${expositionId}`);
+                e.target.reset();
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        // ========== ROOT ==========
+        document.getElementById('getRootBtn').addEventListener('click', async () => {
+            try {
+                const response = await fetch(`${API_BASE}/`, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                if (!response.ok) throw new Error(`Ошибка ${response.status}`);
+                const data = await response.json();
+                displayData('rootResponse', data, 'GET /');
+            } catch (err) {
+                displayData('rootResponse', { error: err.message }, 'Ошибка');
+                console.error(err);
+            }
+        });
+
+        console.log('API клиент запущен. Бекенд:', API_BASE);
+    </script>
+</body>
+</html>
