@@ -21,3 +21,6 @@ docker build -t myapp .
 docker run -d -p 8080:8080 --name myapp-server myapp
 ```
 
+## Использование
+`index.html` отдаётся с бека, такчто всё что надо после запуска сервера это перейти на `http://localhost:8080/` он отдаст `index.html`
+
